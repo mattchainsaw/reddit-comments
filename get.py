@@ -3,8 +3,8 @@ import time
 import sys
 import httplib
 
-TIME_BETWEEN_GETS = 10
-POSTS_PER_PAGE = 1
+TIME_BETWEEN_GETS = 2
+POSTS_PER_PAGE = 25
 comments = []
 sub = sys.argv[1]
 outFile = sys.argv[2]
@@ -15,7 +15,7 @@ def get(url):
     conn = httplib.HTTPConnection('www.reddit.com')
     conn.request('GET', url, headers=hdr)
     txt = conn.getresponse().read()
-    print 'download is successful'
+    print 'download is successful: %s' % url
     conn.close()
     time.sleep(TIME_BETWEEN_GETS)
     return json.loads(txt)
@@ -34,18 +34,19 @@ class comment:
         return "%s\t%s\t%s\t%s\t%s" % (self.sub, self.score, self.up, self.down, self.body)
 
 def parseComment(child):
-    score = child['data']['score']
-    ups = child['data']['ups']
-    downs = child['data']['downs']
-    body = child['data']['body']
-    comments.append(comment(score, ups, downs, body))
-    if child['data']['replies'] != '':
-        n = len(child['data']['replies']['data']['children'])
-        for i in range(n):
-            grand = child['data']['replies']['data']['children'][i]
-            parseComment(grand)
-
-
+    try:
+        score = child['data']['score']
+        ups = child['data']['ups']
+        downs = child['data']['downs']
+        body = child['data']['body']
+        comments.append(comment(score, ups, downs, body))
+        if child['data']['replies'] != '':
+            n = len(child['data']['replies']['data']['children'])
+            for i in range(n):
+                grand = child['data']['replies']['data']['children'][i]
+                parseComment(grand)
+    except KeyError as e:
+        pass
 def parseComments(url):
     j = get(url)
     n = len(j[1]['data']['children'])
@@ -54,13 +55,11 @@ def parseComments(url):
         parseComment(child)
 
 
-
 def parseSub():
     url = '/r/%s.json' % sub
     j = get(url)
     key = j['data']['after']
-    for i in range(POSTS_PER_PAGE): # 25 posts per page
-        print 'looking at a new post'
+    for i in range(0,POSTS_PER_PAGE): # 25 posts per page
         link = j['data']['children'][i]['data']['permalink']
         url = '%s.json' % link
         parseComments(url)
