@@ -34,24 +34,20 @@ def pull(url):
 
 
 class comment:
-    def __init__(self, s, u, d, b):
+    def __init__(self, s, b):
         self.score = s
-        self.down = d
-        self.up = u
         b = ' '.join(b.split())
         self.body = b
 
     def __str__(self):
-        return "%s\t%s\t%s\t%s" % (self.score, self.up, self.down, self.body)
+        return "%s\t%s" % (self.score, self.body)
 
 
 def parseComment(child):
     try:
         score = child['data']['score']
-        ups = child['data']['ups']
-        downs = child['data']['downs']
         body = child['data']['body']
-        comments.append(comment(score, ups, downs, body))
+        comments.append(comment(score, body))
         if child['data']['replies'] != '':
             n = len(child['data']['replies']['data']['children'])
             for i in range(n):

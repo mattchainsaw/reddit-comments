@@ -1,4 +1,4 @@
-SUB_REDDITS=(askReddit funny pics videos news politics todayilearned gaming \
+SUB_REDDITS=(askreddit funny pics videos news politics todayilearned gaming \
              gifs aww relationships showerthoughts sports iama science)
 COMMENTS_DIR=comments
 DATA_DIR=data
