@@ -3,8 +3,10 @@ import time
 import sys
 import httplib
 
+# Number of pages to look for comments in a subreddit
+PAGES=8
+
 TIME_BETWEEN_GETS = 2
-POSTS_PER_PAGE = 25
 comments = []
 sub = sys.argv[1]
 outFile = sys.argv[2]
@@ -67,15 +69,19 @@ def parseComments(url):
         parseComment(child)
 
 
-def parseSub():
-    url = '/r/%s.json' % sub
+def parseSub(count='', key=''):
+    if key == '':
+        url = '/r/%s.json' % sub
+    else:
+        url = '/r/%s.json?count=%s&after=%s' % (sub, count, key)
     j = pull(url)
     key = j['data']['after']
-    for i in range(0, POSTS_PER_PAGE):  # 25 posts per page
+    count = len(j['data']['children'])
+    for i in range(0, count):  # 25 posts per page
         link = j['data']['children'][i]['data']['permalink']
         url = '%s.json' % link
         parseComments(url)
-    return key
+    return count, key
 
 
 def finish(out):
@@ -91,6 +97,12 @@ def finish(out):
 
 
 if __name__ == "__main__":
-    key = parseSub()
+    c, key = parseSub()
+    i = 1
+    count = c
+    while c >= 25 and i < PAGES:
+        c, key = parseSub(count, key)
+        count += c
+        i = i+1
     finish(outFile)
     conn.close()

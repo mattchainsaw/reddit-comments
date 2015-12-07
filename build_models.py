@@ -1,10 +1,9 @@
 from math import log, exp
 from sys import stderr, argv
 import re
+import pickle
 
 alpha = exp(1)  # cause why not?
-maybe_good = 0.0   # for now, assigned in train
-maybe_bad  = 0.0   # for now, assigned in train
 popularity_cutoff = 10
 
 def clean(str):
@@ -14,8 +13,6 @@ def clean(str):
     return words.sub(' ', str).strip().lower()
 
 def train(sub):
-    global maybe_good
-    global maybe_bad
     good = dict()
     bad = dict()
     good_wc = 0.0
@@ -43,43 +40,19 @@ def train(sub):
                         bad[word] = 1
                     bad_wc += 1 + alpha
 
-        maybe_good = log(alpha) - log(good_wc)
-        maybe_bad  = log(alpha) - log(bad_wc)
-
         for key, count in good.iteritems():
             good[key] = log(count) - log(good_wc)
         for key, count in bad.iteritems():
             bad[key] = log(count) - log(bad_wc)
+        good['__unknown__'] = log(alpha) - log(good_wc)
+        bad['__unknown__']  = log(alpha) - log(bad_wc)
     except IOError:
         print "No training data. run \"./manage.sh make-dev\" or \"./manage.sh make\""
     return good, bad
 
-
-def classify(comment, good, bad):
-    score = 0
-    for word in comment.split():
-        try:
-            score += good[word]
-        except KeyError:
-            score += maybe_good
-        try:
-            score -= bad[word]
-        except KeyError:
-            score -= maybe_bad
-    return score
-
-def test_comment(sub, comment):
-    popular, unpopular = train(sub)
-    comment = clean(comment)
-    return classify(comment, popular, unpopular)
-
-
 if __name__ == "__main__":
-    sub = raw_input('Enter SubReddit: ')
-    comment = raw_input('Enter Comment: ')
-    karma = test_comment(sub, comment)
-    if karma > 0:  # Truth is popular
-        print 'Post it! Get Karma!'
-    else:
-        print 'Don\'t post it!'
+    sub = argv[1]
+    popular, unpopular = train(sub)
+    pickle.dump(popular, file('data/' + sub + '.popular.pickle', 'wb+'))
+    pickle.dump(unpopular, file('data/' + sub + '.unpopular.pickle', 'wb+'))
 

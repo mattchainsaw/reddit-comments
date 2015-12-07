@@ -10,6 +10,14 @@ do
   then
     echo "Already gathered comments for $sub"
   else
-    python get.py $sub $COMMENTS_DIR/$sub
+    python get_data.py $sub $COMMENTS_DIR/$sub
   fi
 done
+
+echo 'Almost done!'
+mkdir -p $DATA_DIR
+for sub in ${SUB_REDDITS[@]}
+do
+  python build_models.py $sub
+done
+echo 'Done!'
