@@ -1,5 +1,4 @@
 # from https://en.wikipedia.org/wiki/Most_common_words_in_English
-
 most_common = [
 'the',
 'be',
@@ -100,4 +99,18 @@ most_common = [
 'give',
 'day',
 'most',
-'us']
+'us', 
+'were',
+'really',
+'had',
+'has',
+'re',
+'more',
+'m',
+'don',
+'are',
+'was',
+'t',
+'s',
+'is'
+]
