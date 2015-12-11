@@ -2,6 +2,7 @@ SUB_REDDITS=(askreddit funny pics videos news politics todayilearned gaming \
              gifs aww relationships showerthoughts sports iama science)
 COMMENTS_DIR=comments
 DATA_DIR=data
+TEST_DIR=test
 
 HELP() {
   echo "Usage: $0 {arg}"
@@ -25,17 +26,31 @@ GATHER() {
 }
 
 BUILD() {
-  echo 'Almost done!'
   mkdir -p $DATA_DIR
   for sub in ${SUB_REDDITS[@]}
   do
-    python build.py $sub
+    python build.py $sub $COMMENTS_DIR $1
   done
-  echo 'Done!'
 }
 
 TEST() {
-
+  mkdir -p $TEST_DIR
+  DUMMY=dummy.dummy
+  for sub in ${SUB_REDDITS[@]}
+  do
+    cat $COMMENTS_DIR/$sub | shuf > $DUMMY
+    COUNT=$(cat $DUMMY | wc -l)
+    N=$(python -c "print $COUNT/10")
+    tail -n $N $DUMMY > $TEST_DIR/$sub.test
+    head -n $(python -c "print $COUNT - $N") $DUMMY > $TEST_DIR/$sub
+  done
+  rm $DUMMY
+  COMMENTS_DIR=$TEST_DIR
+  BUILD $1
+  for sub in ${SUB_REDDITS[@]}
+  do
+    python test.py $sub $1
+  done
 }
 
 while [[ $# > 0 ]]
@@ -45,10 +60,12 @@ do
       GATHER
       ;;
     build )
-      BUILD
+      shift 
+      BUILD $1
       ;;
     test )
-      TEST
+      shift
+      TEST $1
       ;;
     * )
       HELP

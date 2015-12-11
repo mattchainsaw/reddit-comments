@@ -4,7 +4,6 @@ import re
 import pickle
 
 alpha = exp(1)  # cause why not?
-popularity_cutoff = 10
 
 def clean(str):
     web = re.compile('http://[^ ]+')
@@ -12,13 +11,13 @@ def clean(str):
     str = web.sub('URL', str)
     return words.sub(' ', str).strip().lower()
 
-def train(sub):
+def train(sub, dir):
     good = dict()
     bad = dict()
     good_wc = 0.0
     bad_wc = 0.0
     try:
-        training = file("comments/" + sub.lower()).read().split('\n')
+        training = file(dir + '/' + sub.lower()).read().split('\n')
         for line in training:
             if line == '':
                 continue
@@ -47,12 +46,15 @@ def train(sub):
         good['__unknown__'] = log(alpha) - log(good_wc)
         bad['__unknown__']  = log(alpha) - log(bad_wc)
     except IOError:
-        print "No training data. run \"./manage.sh make-dev\" or \"./manage.sh make\""
+        print "No training data."
     return good, bad
 
 if __name__ == "__main__":
+    global popularity_cutoff
     sub = argv[1]
-    popular, unpopular = train(sub)
+    dir = argv[2]
+    popularity_cutoff = int(argv[3])
+    popular, unpopular = train(sub, dir)
     pickle.dump(popular, file('data/' + sub + '.popular.pickle', 'wb+'))
     pickle.dump(unpopular, file('data/' + sub + '.unpopular.pickle', 'wb+'))
 
