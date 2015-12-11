@@ -1,5 +1,5 @@
 from sys import stderr, argv
-from build_models import clean
+from build import clean
 import pickle
 
 def test_comment(comment, pop, unpop):

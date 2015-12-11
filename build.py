@@ -1,5 +1,6 @@
 from math import log, exp
 from sys import stderr, argv
+from most_common_words import most_common
 import re
 import pickle
 
@@ -9,7 +10,9 @@ def clean(str):
     web = re.compile('http://[^ ]+')
     words = re.compile('\W+')
     str = web.sub('URL', str)
-    return words.sub(' ', str).strip().lower()
+    str = words.sub(' ', str).strip().lower()
+    str = ' '.join(w for w in str.split() if w not in most_common)
+    return str
 
 def train(sub, dir):
     good = dict()
