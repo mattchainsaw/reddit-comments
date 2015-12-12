@@ -26,26 +26,29 @@ def train(sub, dir):
                 continue
 
             score, text = line.split('\t', 1)
+            score = float(score)
             text = clean(text)
-            if int(score) > popularity_cutoff:
+            if score <= 0:
+                score = 0.01
+            if score > popularity_cutoff:
                 for word in text.split():
                     try:
-                        good[word] += 1
+                        good[word] += score/popularity_cutoff
                     except KeyError:
-                        good[word] = 1
-                    good_wc += 1 + alpha
+                        good[word] = score/popularity_cutoff
+                    good_wc += score/popularity_cutoff + alpha
             else:
                 for word in text.split():
                     try:
-                        bad[word] += 1
+                        bad[word] += popularity_cutoff/score
                     except KeyError:
-                        bad[word] = 1
-                    bad_wc += 1 + alpha
+                        bad[word] = popularity_cutoff/score
+                    bad_wc += popularity_cutoff/score + alpha
 
         for key, count in good.iteritems():
-            good[key] = log(count) - log(good_wc)
+            good[key] = log(count) - log(bad_wc)
         for key, count in bad.iteritems():
-            bad[key] = log(count) - log(bad_wc)
+            bad[key] = log(count) - log(good_wc)
         good['__unknown__'] = log(alpha) - log(good_wc)
         bad['__unknown__']  = log(alpha) - log(bad_wc)
     except IOError:
@@ -56,7 +59,7 @@ if __name__ == "__main__":
     global popularity_cutoff
     sub = argv[1]
     dir = argv[2]
-    popularity_cutoff = int(argv[3])
+    popularity_cutoff = float(argv[3])
     popular, unpopular = train(sub, dir)
     pickle.dump(popular, file('data/' + sub + '.popular.pickle', 'wb+'))
     pickle.dump(unpopular, file('data/' + sub + '.unpopular.pickle', 'wb+'))
